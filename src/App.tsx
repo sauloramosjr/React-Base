@@ -1,11 +1,12 @@
-import { useState } from 'react'
 import { ThemeContextProvider } from '@contexts'
-import { LightTheme, DarkTheme } from '@theme'
-import GlobalStyle from './global.styles'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { DarkTheme, LightTheme } from '@theme'
 import { SnackbarProvider } from 'notistack'
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import GlobalStyle from './global.styles'
+import { AppRoutes } from './routes'
+import { Suspense } from 'react'
 
 function App() {
   const queryClient = new QueryClient()
@@ -18,6 +19,12 @@ function App() {
     },
     initialMode: 'light',
   })
+
+  const isUsuarioLogado = () => {
+    // Verifique se o usuário está logado ou não
+    // Retorna true se estiver logado, false caso contrário
+    return false // Altere essa lógica conforme suas necessidades
+  }
 
   return (
     <>
@@ -32,9 +39,9 @@ function App() {
         />
         <QueryClientProvider client={queryClient}>
           <BrowserRouter basename={rotaServere}>
-            <Routes>
-              <Route path={'/*'} element={<>Inicio da aplicação</>} />
-            </Routes>
+            <Suspense>
+              <Routes>{AppRoutes.map(rotas => rotas)}</Routes>
+            </Suspense>
           </BrowserRouter>
           {import.meta.env.VITE_DEV == 'true' && (
             <ReactQueryDevtools initialIsOpen={false} />
