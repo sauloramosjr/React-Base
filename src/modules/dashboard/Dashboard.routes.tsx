@@ -1,18 +1,39 @@
-import { Navigate, RouteObject } from 'react-router-dom'
-import BemVindo from './bemVindo/BemVindo'
-import Usuarios from './usuarios/Usuarios'
+import { lazy, Suspense } from 'react'
+import { Route, Routes } from 'react-router-dom'
 
-export const DashboardRoutes: RouteObject[] = [
-  {
-    path: '/',
-    element: <Navigate to={'Bem-Vindo'} />,
-  },
-  {
-    path: 'Bem-Vindo',
-    element: <BemVindo />,
-  },
-  {
-    path: 'Usuarios',
-    element: <Usuarios />,
-  },
-]
+const BemVindo = lazy(() => import('./bemVindo/BemVindo'))
+const Usuario = lazy(() => import('./usuarios/Usuarios'))
+
+const NotFound = lazy(() => import('../../common/components/notFound/NotFound'))
+
+export const DashboardRoutes = (
+  <Routes>
+    <Route
+      path=""
+      index
+      element={
+        <Suspense fallback={<div>Loading...</div>}>
+          <BemVindo />
+        </Suspense>
+      }
+    />
+    <Route
+      path="Usuarios"
+      index
+      element={
+        <Suspense fallback={<div>Loading...</div>}>
+          <Usuario />
+        </Suspense>
+      }
+    />
+    <Route
+      path="*"
+      index
+      element={
+        <Suspense fallback={<div>Loading...</div>}>
+          <NotFound />
+        </Suspense>
+      }
+    />
+  </Routes>
+)

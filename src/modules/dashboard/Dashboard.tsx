@@ -1,12 +1,16 @@
-import React from 'react'
-import { Dashboard_Container } from './styles'
-import { Outlet, Route, Routes } from 'react-router-dom'
+import { lazy } from 'react'
+import { Outlet } from 'react-router-dom'
+import { DashboardRoutes } from './Dashboard.routes'
 
 const Dashboard = () => {
   return (
-    <Dashboard_Container>
-      <Outlet />
-    </Dashboard_Container>
+    <>
+      {/* Rotas filhas de Dashboard */}
+      {DashboardRoutes}
+      {/* Rotas filhas de Dashboard */}
+
+      <Outlet></Outlet>
+    </>
   )
 }
 

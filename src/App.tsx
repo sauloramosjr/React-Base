@@ -1,53 +1,85 @@
-import { ThemeContextProvider } from '@contexts'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
-import { DarkTheme, LightTheme } from '@theme'
-import { SnackbarProvider } from 'notistack'
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
-import GlobalStyle from './global.styles'
-import { AppRoutes } from './routes'
-import { Suspense } from 'react'
+import React, { lazy, Suspense } from 'react'
+import { Link, Navigate, Route, Routes } from 'react-router-dom'
 
-function App() {
-  const queryClient = new QueryClient()
-  const rotaServere = '/'
+// Defina um componente para as rotas privadas que redirecionará para a página de login caso o usuário não esteja autenticado
+interface PrivateRouteProps {
+  element: React.ReactNode
+  isAuthenticated: boolean
+}
 
-  const { ThemaProvider, toggleTheme } = ThemeContextProvider({
-    customTheme: {
-      light: LightTheme,
-      dark: DarkTheme,
-    },
-    initialMode: 'light',
-  })
-
-  const isUsuarioLogado = () => {
-    // Verifique se o usuário está logado ou não
-    // Retorna true se estiver logado, false caso contrário
-    return false // Altere essa lógica conforme suas necessidades
+const PrivateRoute: React.FC<PrivateRouteProps> = ({
+  element,
+  isAuthenticated,
+}) => {
+  if (!isAuthenticated) {
+    return <Navigate to="/Login" />
   }
+
+  return <>{element}</>
+}
+
+// Defina uma função para verificar se o usuário está autenticado (você pode implementar essa lógica adequadamente)
+const checkAuthentication = () => {
+  // Exemplo: verifique se o usuário está autenticado
+  // Substitua a lógica abaixo com a sua própria verificação de autenticação
+  return true // ou true, dependendo da lógica de autenticação
+}
+
+// Elementos Lazy para carregamento dinâmico dos componentes das rotas
+const Home = lazy(() => import('./modules/home/Home'))
+const Login = lazy(() => import('./modules/login/Login'))
+const Dashboard = lazy(() => import('./modules/dashboard/Dashboard'))
+const NotFound = lazy(() => import('./common/components/notFound/NotFound'))
+
+const App: React.FC = () => {
+  // Verifique a autenticação do usuário
+  const isAuthenticated = checkAuthentication()
 
   return (
     <>
-      <ThemaProvider>
-        <GlobalStyle />
-        <SnackbarProvider
-          anchorOrigin={{ horizontal: 'right', vertical: 'top' }}
-          // autoHideDuration={3500}
-          preventDuplicate
-          dense
-          maxSnack={3}
-        />
-        <QueryClientProvider client={queryClient}>
-          <BrowserRouter basename={rotaServere}>
-            <Suspense>
-              <Routes>{AppRoutes.map(rotas => rotas)}</Routes>
+      <Routes>
+        {/* Rota Padrão */}
+        <Route
+          path=""
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <Home />
             </Suspense>
-          </BrowserRouter>
-          {import.meta.env.VITE_DEV == 'true' && (
-            <ReactQueryDevtools initialIsOpen={false} />
-          )}
-        </QueryClientProvider>
-      </ThemaProvider>
+          }
+        />
+
+        {/* Rota de Login */}
+        <Route
+          path="Login"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <Login />
+            </Suspense>
+          }
+        />
+
+        {/* Rota de Dashboard, usando a rota privada */}
+        <Route
+          path="Dashboard/*"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <PrivateRoute
+                element={<Dashboard />}
+                isAuthenticated={isAuthenticated}
+              />
+            </Suspense>
+          }></Route>
+
+        {/* Rota NotFound */}
+        <Route
+          path="*"
+          element={
+            <Suspense fallback={<div>Loading...</div>}>
+              <NotFound />
+            </Suspense>
+          }
+        />
+      </Routes>
     </>
   )
 }
