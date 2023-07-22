@@ -1,14 +1,30 @@
 import { UseQueryResult } from '@tanstack/react-query'
 import { AxiosRequestConfig, AxiosResponse } from 'axios'
+import { ObjectValues } from './objectValue'
 
-export type operator = 'equal' | 'containsall' | 'in'
+const tipos = {
+  csEquals: 'equal',
+  csGreater: 'greater',
+  csLess: 'less',
+  csContains: 'contains',
+  csContainsAll: 'containsall',
+  csIn: 'in',
+  csGreaterOrEqual: 'greaterOrEqual',
+  csLessOrEqual: 'lessOrEqual',
+  IniciaCom: 'startswith',
+  TerminaCom: 'endswith',
+  csInOrNull: 'inOrNull',
+} as const
+
+export type operator = ObjectValues<typeof tipos>
 
 export type filtro = {
   property: string
-  value: string | [number]
-  and: boolean
+  value: [number]
+  and?: boolean
   not?: boolean
   operator: operator
+  or?: boolean
 }
 export type pagination = {
   page: number
@@ -31,7 +47,7 @@ export type DataSort = {
 
 export type UsePatchProps = <TDataRetorno, TDto>(
   url: string,
-  queryKey: string | string[],
+  queryKey: string[],
   executarQuery: boolean,
   dto: TDto,
   config?: AxiosRequestConfig,
@@ -40,7 +56,7 @@ export type UsePatchProps = <TDataRetorno, TDto>(
 
 export type UsePostProps = <TDataRetorno, TDto>(
   url: string,
-  queryKey: string | string[],
+  queryKey: string[],
   executarQuery: boolean,
   dto: TDto,
   config?: AxiosRequestConfig,
@@ -52,7 +68,7 @@ export type UsePostFormDataProps = <
   TDto extends Record<string, string>,
 >(
   url: string,
-  queryKey: string | string[],
+  queryKey: string[],
   executarQuery: boolean,
   dto: TDto,
   config?: AxiosRequestConfig,
@@ -61,7 +77,7 @@ export type UsePostFormDataProps = <
 
 export type UseGetProps = <TDataRetorno>(
   url: string,
-  queryKey: string | string[],
+  queryKey: string[],
   parametros?: consulta,
   enable?: boolean,
   initialData?: TDataRetorno,
@@ -71,7 +87,7 @@ export type UseGetProps = <TDataRetorno>(
 export type UseDeleteProps = <TDataRetorno>(
   url: string,
   id: string,
-  queryKey: string | string[],
+  queryKey: string[],
   enable?: boolean,
   config?: AxiosRequestConfig<TDataRetorno> | undefined,
 ) => UseQueryResult<AxiosResponse<TDataRetorno, any>, unknown>

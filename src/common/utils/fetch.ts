@@ -1,5 +1,6 @@
 import { UseMutationResult, useMutation, useQuery } from '@tanstack/react-query'
 import {
+  RequestReturn,
   UseDeleteProps,
   UseGetProps,
   UsePatchProps,
@@ -9,34 +10,35 @@ import {
 } from '@types'
 import axios, { AxiosRequestConfig } from 'axios'
 import { useContext } from 'react'
-import { storeContext } from '@contexts'
+import { storeContext } from '../contexts/Store'
+export type successFunction = () => void
 
 export type UseFetchProps = {
   useGet: UseGetProps
-  useMutationPost: <TDataRetorno>(
+  useMutationPost: <TData>(
     url: string,
-    queryKey: string | string[],
-    onSuccess?: () => void,
-    onError?: (error: unknown) => void,
-  ) => UseMutationResult<TDataRetorno, unknown, TDataRetorno, unknown>
-  useMutationPatch: <TDataRetorno, TDTO>(
+    queryKey: string[],
+    onSuccess?: successFunction | undefined,
+    onError?: ((error: unknown) => void) | undefined,
+  ) => UseMutationResult<TData, unknown, any, unknown>
+  useMutationPatch: <TData>(
     url: string,
-    queryKey: string | string[],
-    onSuccess?: () => void,
-    onError?: (error: unknown) => void,
-  ) => UseMutationResult<TDataRetorno, TDataRetorno, void, unknown>
-  useMutationPut: <TDTO, TData, TError>(
+    queryKey: string[],
+    onSuccess?: successFunction | undefined,
+    onError?: ((error: unknown) => void) | undefined,
+  ) => UseMutationResult<TData, unknown, any, unknown>
+  useMutationPut: <TData>(
     url: string,
-    queryKey: string | string[],
-    onSuccess?: () => void,
-    onError?: (error: unknown) => void,
-  ) => UseMutationResult<TDTO, TData, TDTO, unknown>
-  useMutatuionDelete: <TDataRetorno>(
+    queryKey: string[],
+    onSuccess?: successFunction | undefined,
+    onError?: ((error: unknown) => void) | undefined,
+  ) => UseMutationResult<TData, unknown, any, unknown>
+  useMutationDelete: <Tdata>(
     url: string,
-    queryKey: string | string[],
-    onSuccess?: () => void,
-    onError?: (error: unknown) => void,
-  ) => UseMutationResult<TDataRetorno, TDataRetorno, void, unknown>
+    queryKey: string[],
+    onSuccess?: successFunction | undefined,
+    onError?: ((error: unknown) => void) | undefined,
+  ) => UseMutationResult<any, unknown, any, unknown>
 }
 
 export const UseFetch = () => {
@@ -59,7 +61,7 @@ export const UseFetch = () => {
 
   const useGet: UseGetProps = <TDataRetorno>(
     url: string,
-    queryKey: string | string[],
+    queryKey: string[],
     parametros?: consulta,
     enable?: boolean,
     initialData?: TDataRetorno,
@@ -81,7 +83,7 @@ export const UseFetch = () => {
     }
 
     return useQuery({
-      queryKey: [queryKey],
+      queryKey: queryKey,
       queryFn: async () => {
         let response = {} as any
         try {
@@ -95,35 +97,34 @@ export const UseFetch = () => {
         return response
       },
       retry: 0,
-      staleTime: Infinity,
-      enabled: enable,
+      enabled: enable === false ? false : true,
       initialData,
     })
   }
 
-  const useMutationPost = <TDataRetorno, TDto>(
+  const useMutationPost = <TData>(
     url: string,
-    queryKey: string | string[],
-    onSuccess?: () => void,
+    queryKey: string[],
+    onSuccess?: successFunction,
     onError?: (error: unknown) => void,
   ) => {
-    return useMutation<TDataRetorno, unknown, TDataRetorno>(
-      async data => (await axiosInstance.post<TDataRetorno>(url, data)).data,
+    return useMutation(
+      async data => (await axiosInstance.post<TData>(url, data)).data,
       {
         onSuccess,
-        mutationKey: [queryKey], // Passa a queryKey como array
+        mutationKey: queryKey, // Passa a queryKey como array
         onError,
       },
     )
   }
 
-  const useMutationPatch = <TData, TError, TDTO>(
+  const useMutationPatch = <TData>(
     url: string,
-    queryKey: string | string[],
-    onSuccess?: () => void,
+    queryKey: string[],
+    onSuccess?: successFunction,
     onError?: (error: unknown) => void,
   ) => {
-    return useMutation<TData, TError, TDTO>(
+    return useMutation(
       async data => (await axiosInstance.patch<TData>(url, data)).data,
       {
         onSuccess,
@@ -132,14 +133,14 @@ export const UseFetch = () => {
       },
     )
   }
-  const useMutationPut = <TDTO, TData, TError>(
+  const useMutationPut = <TData>(
     url: string,
-    queryKey: string | string[],
-    onSuccess?: () => void,
+    queryKey: string[],
+    onSuccess?: successFunction,
     onError?: (error: unknown) => void,
   ) => {
-    return useMutation<TDTO, TData, TDTO>(
-      async data => (await axiosInstance.put<TDTO>(url, data)).data,
+    return useMutation(
+      async data => (await axiosInstance.put<TData>(url, data)).data,
       {
         onSuccess,
         mutationKey: [queryKey],
@@ -148,27 +149,24 @@ export const UseFetch = () => {
     )
   }
 
-  const useMutatuionDelete = <TDataRetorno>(
+  const useMutationDelete = <Tdata>(
     url: string,
-    queryKey: string | string[],
-    onSuccess?: () => void,
+    queryKey: string[],
+    onSuccess?: successFunction,
     onError?: (error: unknown) => void,
   ) => {
-    return useMutation<TDataRetorno, TDataRetorno>(
-      async () => (await axiosInstance.delete<TDataRetorno>(url)).data,
-      {
-        onSuccess,
-        mutationKey: [queryKey],
-        onError,
-      },
-    )
+    return useMutation(async () => (await axiosInstance.delete(url)).data, {
+      onSuccess,
+      mutationKey: [queryKey],
+      onError,
+    })
   }
 
   const UseFetch: UseFetchProps = {
     useGet,
     useMutationPatch,
     useMutationPost,
-    useMutatuionDelete,
+    useMutationDelete,
     useMutationPut,
   }
   return UseFetch
